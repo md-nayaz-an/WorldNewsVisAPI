@@ -1,0 +1,16 @@
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.url=jdbc:postgresql://localhost:5432/newsDB
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+spring.jackson.serialization.fail-on-empty-beans=false
+spring.jackson.default-property-inclusion=non_null
+
+spring.codec.maxInMemorySize=15MB
+
+# user specific properties
+spring.datasource.username=
+spring.datasource.password=
+
+api.worldnews.key=
