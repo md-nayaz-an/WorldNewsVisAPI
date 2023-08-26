@@ -6,6 +6,7 @@ import com.cheese.WorldNewsVisAPI.models.NewsFetchArticle;
 import com.cheese.WorldNewsVisAPI.models.RestCountryModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Date;
@@ -14,59 +15,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.cheese.WorldNewsVisAPI.service.NewsService.countryModelMap;
+
 @Service
 public class JsonResponseFormatter {
 
     @Autowired
-    CountryInfoFetch countryInfoFetch;
-
-    @Autowired
     Logger logger;
 
+    public CountryNewsModel format(List<NewsFetchArticle> newsList, String key) {
 
-    public List<CountryNewsModel> format(List<NewsFetchArticle> newsList) {
+        if(key.trim().isEmpty())
+            key = "us";
 
-        Map<String, RestCountryModel> countryModelMap = new HashMap<>();
+        CountryNewsModel countryNewsModel = new CountryNewsModel();
 
-        List<CountryNewsModel> summaries = newsList.stream()
-                .collect(Collectors.groupingBy(
-                        NewsFetchArticle::getSource_country,
-                        Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                articles -> {
-                                    String cca2 = articles.get(0).getSource_country();
+        countryNewsModel.setCca2(key);
+        countryNewsModel.setArticles(newsList);
 
-                                    if(cca2.trim().isEmpty()) {
-                                        cca2 = "us";
-                                    }
+        Integer count = newsList.size();
+        countryNewsModel.setArticleCount(count);
 
-                                    CountryNewsModel summary = new CountryNewsModel();
-                                    summary.setCca2(cca2);
-                                    summary.setArticles(articles);
-                                    summary.setArticleCount(articles.size());
-                                    double averageSentiment = articles.stream()
-                                            .mapToDouble(NewsFetchArticle::getSentiment)
-                                            .average()
-                                            .orElse(0.0);
-                                    summary.setAverageSentiment(averageSentiment);
+        Flux.fromIterable(newsList)
+                .map(NewsFetchArticle::getSentiment)
+                .reduce(Double::sum)
+                .map(totalSentiment -> count > 0 ? totalSentiment / count : 0.0)
+                .subscribe(countryNewsModel::setAverageSentiment);
 
-                                    if (!countryModelMap.containsKey(cca2)) {
-                                        countryModelMap.put(cca2, countryInfoFetch.fetch(cca2));
-                                    }
+        RestCountryModel restCountryModel = countryModelMap.get(key);
+        countryNewsModel.setCountry(restCountryModel.getCommon());
+        countryNewsModel.setLatlng(restCountryModel.getLatlng());
 
-                                    RestCountryModel restCountryModel = countryModelMap.get(cca2);
-                                    summary.setCountry(restCountryModel.getCommon());
-                                    summary.setLatlng(restCountryModel.getLatlng());
-
-                                    return summary;
-
-                                }
-                        )
-                ))
-                .values()
-                .stream()
-                .toList();
-
-        return summaries;
+        return countryNewsModel;
     }
 }

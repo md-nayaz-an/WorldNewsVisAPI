@@ -18,6 +18,5 @@ public class CountryInfoFetch {
                 .retrieve()
                 .bodyToMono(RestCountryModel.class)
                 .block();
-
     }
 }
