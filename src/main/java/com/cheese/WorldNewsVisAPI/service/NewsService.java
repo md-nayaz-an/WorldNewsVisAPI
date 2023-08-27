@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -79,16 +80,27 @@ public class NewsService {
     }
 
 
-    public Flux<String> searchNewsTestStream(String queryString) throws IOException {
-        String filePath = "src/main/java/com/cheese/WorldNewsVisAPI/sampleData/" +
-                queryString.replace(' ', '_') +
-                ".json";
-        String jsonData = Files.readString(Paths.get(filePath));
-
-        NewsFetchData newsFetchData = objectMapper.readValue(jsonData, NewsFetchData.class);
-
+    public Flux<String> searchNewsTestStream(String queryString) {
+        String resourcePath = "sampleData/" + queryString.replace(' ', '_') + ".json";
         System.out.println("Test: " + queryString);
+        
+        InputStream inputStream = NewsService.class.getClassLoader().getResourceAsStream(resourcePath);
 
+        NewsFetchData newsFetchData = null;
+        if (inputStream != null) {
+            try {
+                // Use ObjectMapper to deserialize the JSON data
+                ObjectMapper objectMapper = new ObjectMapper();
+                newsFetchData = objectMapper.readValue(inputStream, NewsFetchData.class);
+
+                // Now 'newsFetchData' contains the deserialized JSON data
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else
+            return Flux.just("Error");
+
+        assert newsFetchData != null;
         List<NewsFetchArticle> newsList = newsFetchData.getNews();
 
 
@@ -98,7 +110,7 @@ public class NewsService {
                         .groupingBy(NewsFetchArticle::getSource_country));
 
         map.keySet().forEach(key -> {
-            if(key.trim().isEmpty())
+            if (key.trim().isEmpty())
                 key = "us";
             if (!countryModelMap.containsKey(key)) {
                 countryModelMap.put(key, countryInfoFetch.fetch(key));
