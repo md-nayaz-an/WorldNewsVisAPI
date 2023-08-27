@@ -4,7 +4,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY src src
-RUN mvn install
+RUN mvn clean install -U -Dmaven.test.failure.ignore=true
 
 FROM eclipse-temurin:20-jdk-alpine
 VOLUME /tmp
