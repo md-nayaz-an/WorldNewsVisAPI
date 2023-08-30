@@ -10,13 +10,24 @@ public class CountryInfoFetch {
     public RestCountryModel fetch(String countryCode) {
         WebClient webClient = WebClient.create("https://restcountries.com/v3.1");
 
-        return webClient.get()
-                .uri(
-                        "/alpha/" + countryCode
-                                 + "?fields=name,cca2,latlng"
-                )
-                .retrieve()
-                .bodyToMono(RestCountryModel.class)
-                .block();
+        try {
+            return webClient.get()
+                    .uri(
+                            "/alpha/" + countryCode
+                                    + "?fields=name,cca2,latlng"
+                    )
+                    .retrieve()
+                    .bodyToMono(RestCountryModel.class)
+                    .block();
+        } catch (Exception ex) {
+            return webClient.get()
+                    .uri(
+                            "/alpha/us"
+                                    + "?fields=name,cca2,latlng"
+                    )
+                    .retrieve()
+                    .bodyToMono(RestCountryModel.class)
+                    .block();
+        }
     }
 }
