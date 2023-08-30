@@ -41,6 +41,7 @@ public class MainController {
 
     @GetMapping(value = "ping")
     public String Ping() {
+        System.out.println("pinged");
         return "Pinged";
     }
 }
