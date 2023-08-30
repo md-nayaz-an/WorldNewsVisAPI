@@ -38,4 +38,9 @@ public class MainController {
     public Flux<String> searchNewsTest(@RequestParam String queryString) throws IOException {
         return newsService.searchNewsTestStream(queryString);
     }
+
+    @GetMapping(value = "ping")
+    public String Ping() {
+        return "Pinged";
+    }
 }
