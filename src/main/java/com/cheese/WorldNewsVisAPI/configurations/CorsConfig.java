@@ -12,12 +12,16 @@ public class CorsConfig {
     @Value("${cors.allowed.origin}")
     private String AllowedOrigin;
 
+    @Value("${cors.allowed.pinger}")
+    private String AllowedPinger;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
         config.addAllowedOrigin(AllowedOrigin);
+        config.addAllowedOrigin(AllowedPinger);
         config.addAllowedMethod("GET");
         config.addAllowedMethod("POST");
         config.addAllowedMethod("PUT");
