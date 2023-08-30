@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 @Service
@@ -27,11 +29,22 @@ public class WorldNewsAPIFetch {
                 .baseUrl("https://api.worldnewsapi.com/search-news")
                 .build();
 
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(7);
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String earliestPublishDate = startDate.format(dateFormatter);
+        String latestPublishDate = endDate.format(dateFormatter);
+
+        System.out.println(earliestPublishDate);
+        System.out.println(latestPublishDate);
         return webClient.get()
                 .uri(
                         "?text=" + query +
-                                "&earliest-publish-date=2023-07-22" +
-                                "&latest-publish-date=2023-08-22" +
+                                "&earliest-publish-date=" + earliestPublishDate +
+                                "&latest-publish-date=" + latestPublishDate +
+                                "&sort=publish-time" +
+                                "&sort-direction=DESC" +
                                 "&number=100" +
                                 "&api-key=" + apikey
                 )
